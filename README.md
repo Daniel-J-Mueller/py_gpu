@@ -26,8 +26,10 @@ Current status:
 - Dependency-free `FrameBuffer` and `DepthBuffer`.
 - Screen-space `RasterBatch`, `ScreenTriangle`, and `ScreenVertex` contracts.
 - A small CPU raster backend for correctness and fallback use.
+- A real offscreen ModernGL backend for projected triangle batches when OpenGL
+  is available.
 - An optional NumPy raster backend selected by `select_backend("auto")` when
-  NumPy is installed.
+  ModernGL is unavailable and NumPy is installed.
 - Optional backend detection for WebGPU, OpenGL, Vulkan, CuPy, Numba, and
   PyTorch packages.
 - Optional `py_3d` adapter that can render a `py_3d.Scene` through a `py_gpu`
@@ -35,6 +37,14 @@ Current status:
 
 This is not yet a full GPU renderer. The first goal is a clean, measurable
 contract that real GPU backends can implement without changing user scenes.
+
+## Preview
+
+![py_gpu preview](renderings-tests/py_gpu_preview.png)
+
+<video src="renderings-tests/py_gpu_preview.mp4" controls width="640"></video>
+
+[View the py_gpu preview MP4](renderings-tests/py_gpu_preview.mp4)
 
 ## Install
 
@@ -74,6 +84,18 @@ frame = backend.render(batch, width=160, height=140, background=(8, 10, 14))
 frame.to_png("triangle.png")
 ```
 
+Use the fastest available backend:
+
+```python
+backend = select_backend("auto")
+```
+
+Force the offscreen OpenGL backend:
+
+```python
+backend = select_backend("moderngl")
+```
+
 Use the first `py_3d` bridge:
 
 ```python
@@ -94,6 +116,7 @@ Run the current screen-space raster benchmark:
 
 ```bash
 python examples/benchmark_raster.py --backend auto --frames 60 --triangles 1000 --width 640 --height 360
+python examples/benchmark_raster.py --backend moderngl --frames 60 --triangles 1000 --width 640 --height 360
 python examples/benchmark_raster.py --backend cpu --frames 10 --triangles 1000 --width 640 --height 360
 ```
 
@@ -103,10 +126,17 @@ Write a visual benchmark frame:
 python examples/benchmark_raster.py --triangles 1000 --output raster-benchmark.png
 ```
 
-On one Windows development machine with NumPy available, the current 1000
-triangle `640x360` benchmark measured about `9.2 fps` through the NumPy backend
-and about `0.8 fps` through the plain Python CPU backend. Treat local benchmark
-numbers as machine-specific, not a promise.
+On one Windows development machine with an RTX 4090, the current 1000 triangle
+`640x360` benchmark measured about `131.6 fps` through the ModernGL backend,
+about `8.8 fps` through the NumPy backend, and about `0.8 fps` through the plain
+Python CPU backend. Treat local benchmark numbers as machine-specific, not a
+promise.
+
+Generate README preview media:
+
+```bash
+python examples/render_preview.py --backend auto
+```
 
 ## Architecture
 
@@ -118,6 +148,7 @@ numbers as machine-specific, not a promise.
 - `backends`: protocol, capabilities, and selection logic.
 - `raster`: reference CPU rasterizer for correctness.
 - `numpy_raster`: optional vectorized CPU rasterizer.
+- `moderngl_backend`: optional offscreen OpenGL rasterizer.
 - `adapters`: optional bridges from scene packages such as `py_3d`.
 
 Backends should expose capabilities rather than pretending every implementation

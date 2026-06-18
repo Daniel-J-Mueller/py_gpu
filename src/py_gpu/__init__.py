@@ -7,6 +7,11 @@ from .geometry import RasterBatch, ScreenTriangle, ScreenVertex
 from .raster import CPURasterBackend
 
 try:
+    from .moderngl_backend import ModernGLRasterBackend
+except Exception:  # pragma: no cover - optional dependency
+    ModernGLRasterBackend = None  # type: ignore[assignment]
+
+try:
     from .numpy_raster import NumpyRasterBackend
 except Exception:  # pragma: no cover - optional dependency
     NumpyRasterBackend = None  # type: ignore[assignment]
@@ -16,6 +21,7 @@ __all__ = [
     "CPURasterBackend",
     "DepthBuffer",
     "FrameBuffer",
+    "ModernGLRasterBackend",
     "NumpyRasterBackend",
     "RasterBackend",
     "RasterBatch",

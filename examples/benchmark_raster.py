@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 from random import Random
+from pathlib import Path
 from statistics import mean
 from time import perf_counter
 
@@ -41,7 +42,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--triangles", type=int, default=1000)
     parser.add_argument("--frames", type=int, default=60)
     parser.add_argument("--seed", type=int, default=7)
-    parser.add_argument("--backend", choices=("auto", "cpu", "numpy"), default="auto")
+    parser.add_argument("--backend", choices=("auto", "cpu", "numpy", "moderngl", "gpu"), default="auto")
     parser.add_argument("--output")
     return parser.parse_args()
 
@@ -64,6 +65,7 @@ def main() -> None:
     print(f"avg frame: {average * 1000:.2f} ms")
     print(f"approx fps: {1.0 / average:.1f}")
     if args.output and frame is not None:
+        Path(args.output).parent.mkdir(parents=True, exist_ok=True)
         frame.to_png(args.output)
         print(f"wrote: {args.output}")
 

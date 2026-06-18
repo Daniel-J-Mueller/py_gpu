@@ -18,3 +18,7 @@ experiments.
 - Prefer persistent batches and explicit transfer points over hidden global
   renderer state.
 - Keep APIs small enough that other Python libraries can adapt into them.
+- The ModernGL backend is the first real GPU path. Keep improving it behind the
+  same `RasterBackend` contract.
+- For scene adapters such as `py_gpu.adapters.py3d`, prioritize persistent
+  geometry/material buffers and lighting parity before adding new demo features.

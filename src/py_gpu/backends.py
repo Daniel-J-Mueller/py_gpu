@@ -43,6 +43,15 @@ def select_backend(prefer: str = "auto") -> RasterBackend:
     GPU backends should keep this function's return contract stable.
     """
 
+    if prefer in {"auto", "moderngl", "opengl", "gpu"}:
+        try:
+            from .moderngl_backend import ModernGLRasterBackend
+
+            return ModernGLRasterBackend()
+        except Exception as exc:
+            if prefer in {"moderngl", "opengl", "gpu"}:
+                raise RuntimeError("ModernGL GPU backend is not available") from exc
+
     if prefer in {"auto", "numpy"}:
         try:
             from .numpy_raster import NumpyRasterBackend
