@@ -30,20 +30,27 @@ def scene_to_raster_batch(scene, camera, settings) -> RasterBatch:
 class Py3DRasterRenderer:
     """Renderer-compatible adapter for py_3d's ``RenderEngine``.
 
-    This first adapter is intentionally flat-colored. It validates the batch and
-    frame contract before a real GPU backend adds lighting, textures, and
-    persistent geometry uploads.
+    By default this adapter prioritizes py_3d visual parity over raw speed and
+    delegates to py_3d's reference renderer. Set ``reference_compatible=False``
+    to use the experimental flat batch GPU path for benchmarks.
     """
 
     backend_impl: RasterBackend | None = None
+    reference_compatible: bool = True
     name: str = "py_gpu py_3d batch renderer"
     backend: str = "py_gpu"
 
     def __post_init__(self) -> None:
-        if self.backend_impl is None:
+        if self.backend_impl is None and not self.reference_compatible:
             self.backend_impl = select_backend()
 
     def render(self, scene, camera, settings, target=None):
+        if self.reference_compatible:
+            from py_3d import CPURenderer
+
+            return CPURenderer(cache_static_geometry=False).render(scene, camera, settings, target)
+        if self.backend_impl is None:
+            self.backend_impl = select_backend()
         batch = scene_to_raster_batch(scene, camera, settings)
         background = _material_color(settings.background)
         frame = self.backend_impl.render(batch, settings.width, settings.height, background=background)
@@ -99,7 +106,7 @@ class _Projector:
 
 def _triangles_for_py3d(obj, settings):
     try:
-        from py_3d import Bowl, Mesh, Sphere, Triangle
+        from py_3d import Bowl, Capsule, Mesh, Sphere, Triangle
     except Exception as exc:  # pragma: no cover - only reached without optional py_3d
         raise RuntimeError("py_3d must be importable to use py_gpu.adapters.py3d") from exc
 
@@ -107,7 +114,7 @@ def _triangles_for_py3d(obj, settings):
         return (obj,)
     if isinstance(obj, Mesh):
         return obj.to_triangles()
-    if isinstance(obj, (Bowl, Sphere)):
+    if isinstance(obj, (Bowl, Capsule, Sphere)):
         return obj.to_triangles(segments=settings.sphere_segments, rings=settings.sphere_rings)
     to_triangles = getattr(obj, "to_triangles", None)
     if callable(to_triangles):

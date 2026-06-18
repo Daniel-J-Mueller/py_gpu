@@ -32,8 +32,8 @@ Current status:
   ModernGL is unavailable and NumPy is installed.
 - Optional backend detection for WebGPU, OpenGL, Vulkan, CuPy, Numba, and
   PyTorch packages.
-- Optional `py_3d` adapter that can render a `py_3d.Scene` through a `py_gpu`
-  batch backend and return a `py_3d.PixelBuffer`.
+- Optional `py_3d` adapter that can return a `py_3d.PixelBuffer` with reference
+  visual parity, while still exposing an experimental flat batch backend path.
 
 This is not yet a full GPU renderer. The first goal is a clean, measurable
 contract that real GPU backends can implement without changing user scenes.
@@ -115,8 +115,11 @@ buffer = engine.render(scene, camera, settings)
 buffer.to_png("py3d-via-pygpu.png")
 ```
 
-The adapter is currently flat-colored. Lighting, textures, smooth vertex
-attributes, and persistent GPU uploads should be added behind this same shape.
+The adapter defaults to reference-compatible rendering so live `py_3d` windows
+match the fully shaded CPU outputs. Use `Py3DRasterRenderer(reference_compatible=False)`
+to exercise the current flat batch backend. Lighting, textures, smooth vertex
+attributes, and persistent GPU uploads should be added behind this same shape
+before the accelerated path becomes the default for full scenes.
 
 ## Benchmarks
 
