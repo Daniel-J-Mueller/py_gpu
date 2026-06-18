@@ -56,6 +56,12 @@ contract that real GPU backends can implement without changing user scenes.
 
 ## Install
 
+From PyPI after release:
+
+```bash
+python -m pip install py_gpu
+```
+
 Editable development install:
 
 ```bash
@@ -159,6 +165,29 @@ Generate README preview media:
 python examples/render_preview.py --backend auto
 python examples/render_lit_textured_shapes.py
 ```
+
+## Publishing
+
+PyPI Trusted Publishing should use:
+
+| Field | Value |
+| --- | --- |
+| PyPI Project Name | `py_gpu` |
+| Owner | `Daniel-J-Mueller` |
+| Repository name | `py_gpu` |
+| Workflow name | `publish.yml` |
+| Environment name | blank / any |
+
+Publish by committing `.github/workflows/publish.yml`, pushing the branch, and
+pushing a version tag:
+
+```bash
+git tag v0.0.1
+git push origin v0.0.1
+```
+
+The workflow builds with `python -m build` and publishes with PyPI Trusted
+Publishing through `pypa/gh-action-pypi-publish`.
 
 ## Architecture
 

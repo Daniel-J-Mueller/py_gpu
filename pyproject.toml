@@ -3,12 +3,12 @@ requires = ["setuptools>=69"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "py-gpu"
+name = "py_gpu"
 version = "0.0.1"
 description = "Backend-agnostic GPU and accelerated rendering core experiments for Python scene packages."
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "MIT" }
+license = "MIT"
 authors = [{ name = "py_gpu contributors" }]
 dependencies = []
 classifiers = [
@@ -27,6 +27,10 @@ dev = ["pytest>=8"]
 opengl = ["moderngl>=5.10"]
 webgpu = ["wgpu>=0.17"]
 numeric = ["numpy>=2", "numba>=0.59"]
+
+[project.urls]
+Repository = "https://github.com/Daniel-J-Mueller/py_gpu"
+Issues = "https://github.com/Daniel-J-Mueller/py_gpu/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]
