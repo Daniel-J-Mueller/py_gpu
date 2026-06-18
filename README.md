@@ -117,9 +117,13 @@ buffer.to_png("py3d-via-pygpu.png")
 
 The adapter defaults to reference-compatible rendering so live `py_3d` windows
 match the fully shaded CPU outputs. Use `Py3DRasterRenderer(reference_compatible=False)`
-to exercise the current flat batch backend. Lighting, textures, smooth vertex
-attributes, and persistent GPU uploads should be added behind this same shape
-before the accelerated path becomes the default for full scenes.
+to exercise the current fast batch backend. Fast mode projects triangles,
+applies simple per-face lighting, samples textured faces at the triangle center,
+expands wireframe edges into thin GPU triangles, and returns packed RGB frames
+through `py_3d`'s lazy `PixelBuffer` path. Smooth vertex attributes, full
+material parity, persistent static geometry uploads, and direct window
+presentation should be added behind this same shape before the accelerated path
+becomes the default for full scenes.
 
 ## Benchmarks
 
@@ -142,6 +146,12 @@ On one Windows development machine with an RTX 4090, the current 1000 triangle
 about `8.8 fps` through the NumPy backend, and about `0.8 fps` through the plain
 Python CPU backend. Treat local benchmark numbers as machine-specific, not a
 promise.
+
+Through the `py_3d` adapter on the same machine, the fast ModernGL bridge
+measured about `48 fps` at `320x180` with 236 generated scene triangles and
+about `63 fps` at `480x270` with a lighter 132-triangle live setting. The gap
+between raw raster speed and adapter speed is expected until persistent batches
+and direct presentation remove more per-frame Python and readback work.
 
 Generate README preview media:
 
