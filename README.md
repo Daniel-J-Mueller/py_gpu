@@ -46,6 +46,14 @@ contract that real GPU backends can implement without changing user scenes.
 
 [View the py_gpu preview MP4](renderings-tests/py_gpu_preview.mp4)
 
+## Lit 3D Shape Preview
+
+![GPU lit textured shapes](renderings-tests/gpu_lit_textured_shapes.png)
+
+<video src="renderings-tests/gpu_lit_textured_shapes.mp4" controls width="640"></video>
+
+[View the GPU lit textured shapes MP4](renderings-tests/gpu_lit_textured_shapes.mp4)
+
 ## Install
 
 Editable development install:
@@ -136,6 +144,7 @@ Generate README preview media:
 
 ```bash
 python examples/render_preview.py --backend auto
+python examples/render_lit_textured_shapes.py
 ```
 
 ## Architecture
