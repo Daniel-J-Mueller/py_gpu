@@ -10,6 +10,9 @@ from .backends import BackendCapabilities
 from .buffers import ColorLike, FrameBuffer, as_rgb
 from .geometry import RasterBatch
 
+_NUMPY = None
+_NUMPY_CHECKED = False
+
 
 VERTEX_SHADER = """
 #version 330
@@ -69,13 +72,23 @@ class ModernGLRasterBackend:
         background: ColorLike = (0, 0, 0),
         target: FrameBuffer | None = None,
     ) -> FrameBuffer:
+        return self.render_vertex_bytes(_batch_to_vertices(batch, width, height), width, height, background=background, target=target)
+
+    def render_vertex_bytes(
+        self,
+        vertex_bytes: bytes,
+        width: int,
+        height: int,
+        *,
+        background: ColorLike = (0, 0, 0),
+        target: FrameBuffer | None = None,
+    ) -> FrameBuffer:
         ctx, program = self._ensure_context()
         framebuffer = self._framebuffer(width, height)
         framebuffer.use()
         red, green, blue = (channel / 255.0 for channel in as_rgb(background))
         framebuffer.clear(red, green, blue, 1.0, depth=1.0)
 
-        vertex_bytes = _batch_to_vertices(batch, width, height)
         if vertex_bytes:
             vbo = ctx.buffer(vertex_bytes)
             vao = ctx.vertex_array(program, [(vbo, "3f 3f", "in_position", "in_color")])
@@ -140,6 +153,12 @@ def _batch_to_vertices(batch: RasterBatch, width: int, height: int) -> bytes:
 
 
 def _flip_rows(data: bytes, width: int, height: int) -> bytes:
+    numpy = _numpy()
+    if numpy is not None:
+        try:
+            return numpy.frombuffer(data, dtype=numpy.uint8).reshape((height, width * 3))[::-1].copy().tobytes()
+        except Exception:
+            pass
     row_size = width * 3
     payload = bytearray(len(data))
     for y in range(height):
@@ -147,3 +166,17 @@ def _flip_rows(data: bytes, width: int, height: int) -> bytes:
         dst_start = y * row_size
         payload[dst_start : dst_start + row_size] = data[src_start : src_start + row_size]
     return bytes(payload)
+
+
+def _numpy():
+    global _NUMPY, _NUMPY_CHECKED
+    if _NUMPY_CHECKED:
+        return _NUMPY
+    _NUMPY_CHECKED = True
+    try:
+        import numpy
+    except Exception:
+        _NUMPY = None
+    else:
+        _NUMPY = numpy
+    return _NUMPY
